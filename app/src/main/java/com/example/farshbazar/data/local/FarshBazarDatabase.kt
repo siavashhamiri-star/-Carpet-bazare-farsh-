@@ -14,7 +14,7 @@ import com.example.farshbazar.data.model.*
         Suggestion::class,
         UserProfile::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class FarshBazarDatabase : RoomDatabase() {
@@ -26,14 +26,26 @@ abstract class FarshBazarDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): FarshBazarDatabase {
             return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    FarshBazarDatabase::class.java,
-                    "farsh_bazar_database"
-                ).build()
-                INSTANCE = instance
-                instance
+                try {
+                    buildDatabase(context).also { INSTANCE = it }
+                } catch (t: Throwable) {
+                    android.util.Log.e("FarshBazarDatabase", "Resetting database due to schema change: ${t.message}")
+                    try {
+                        context.applicationContext.deleteDatabase("farsh_bazar_database")
+                    } catch (_: Throwable) {}
+                    buildDatabase(context).also { INSTANCE = it }
+                }
             }
+        }
+
+        private fun buildDatabase(context: Context): FarshBazarDatabase {
+            return Room.databaseBuilder(
+                context.applicationContext,
+                FarshBazarDatabase::class.java,
+                "farsh_bazar_database"
+            )
+            .fallbackToDestructiveMigration()
+            .build()
         }
     }
 }

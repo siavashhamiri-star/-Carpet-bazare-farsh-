@@ -14,7 +14,11 @@ class MainViewModel(val repository: FarshBazarRepository) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            repository.initializeDefaultDataIfNeeded()
+            try {
+                repository.initializeDefaultDataIfNeeded()
+            } catch (e: Exception) {
+                android.util.Log.e("MainViewModel", "Error seeding database: ${e.message}", e)
+            }
         }
     }
 

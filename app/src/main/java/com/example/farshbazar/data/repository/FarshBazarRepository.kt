@@ -59,7 +59,8 @@ class FarshBazarRepository(private val dao: FarshBazarDao) {
     }
 
     suspend fun initializeDefaultDataIfNeeded() {
-        if (dao.getVendorCount() == 0) {
+        try {
+            if (dao.getVendorCount() == 0) {
             // Seed default vendors
             val vendor1 = Vendor(
                 id = "vendor-1",
@@ -190,6 +191,9 @@ class FarshBazarRepository(private val dao: FarshBazarDao) {
                     isLoggedIn = true
                 )
             )
+            }
+        } catch (e: Throwable) {
+            android.util.Log.e("FarshBazarRepository", "Error initializing default data: ${e.message}", e)
         }
     }
 }
